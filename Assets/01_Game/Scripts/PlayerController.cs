@@ -21,14 +21,33 @@ namespace UnityChan
         public float useCurvesHeight = 0.5f;        // カーブ補正の有効高さ（地面をすり抜けやすい時には大きくする）
 
         // 以下キャラクターコントローラ用パラメタ
-        // 前進速度
-        public float forwardSpeed = 7.0f;
-        // 後退速度
-        public float backwardSpeed = 2.0f;
-        // 旋回速度
-        public float rotateSpeed = 2.0f;
+        [Header("移動の速さ"), SerializeField]
+        private float _speed = 3;
+
         // ジャンプ威力
-        public float jumpPower = 3.0f;
+        [SerializeField] private float jumpPower = 3.0f;
+
+        [Header("カメラ"), SerializeField]
+        private Camera _targetCamera;
+
+        // Rayの長さ
+        [SerializeField] private float _rayLength = 1f;
+
+        // Rayをどれくらい身体にめり込ませるか
+        [SerializeField] private float _rayOffset;
+
+        // Rayの判定に用いるLayer
+        [SerializeField] private LayerMask _layerMask = default;
+
+        private bool _isGround;
+
+        private Transform _transform;
+        private CharacterController _characterController;
+
+        private Vector2 _inputMove;
+        private float _verticalVelocity;
+        private float _turnVelocity;
+
         // キャラクターコントローラ（カプセルコライダ）の参照
         private CapsuleCollider col;
         private Rigidbody rb;
@@ -48,7 +67,35 @@ namespace UnityChan
         static int jumpState = Animator.StringToHash("Base Layer.Jump");
         static int restState = Animator.StringToHash("Base Layer.Rest");
 
-        private Vector3 latestPos;
+        // ----------------------------------------------------------------------- InputSystem
+        public void OnMove(InputAction.CallbackContext context)
+        {
+            _inputMove = context.ReadValue<Vector2>();
+        }
+
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            //アニメーションのステートがLocomotionの最中のみジャンプできる
+            if (currentBaseState.nameHash == locoState)
+            {
+                //ステート遷移中でなかったらジャンプできる
+                if (!anim.IsInTransition(0))
+                {
+                    rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
+                    anim.SetBool("Jump", true);     // Animatorにジャンプに切り替えるフラグを送る
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------------ UnityMessage
+        private void Awake()
+        {
+            _transform = transform;
+            _characterController = GetComponent<CharacterController>();
+
+            if (_targetCamera == null)
+                _targetCamera = Camera.main;
+        }
 
         // 初期化
         void Start()
@@ -72,11 +119,47 @@ namespace UnityChan
             currentBaseState = anim.GetCurrentAnimatorStateInfo(0); // 参照用のステート変数にBase Layer (0)の現在のステートを設定する
             rb.useGravity = true;//ジャンプ中に重力を切るので、それ以外は重力の影響を受けるようにする
 
-            // キャラクター移動
-            transform.position += velocity * forwardSpeed * Time.deltaTime;
+            // カメラの向き（角度[deg]）取得
+            var cameraAngleY = _targetCamera.transform.eulerAngles.y;
 
-            // キャラクター回転
-            transform.forward = Vector3.Slerp(transform.forward, velocity, Time.deltaTime * rotateSpeed);
+            // 操作入力と鉛直方向速度から、現在速度を計算
+            var moveVelocity = new Vector3(
+                _inputMove.x * _speed,
+                _verticalVelocity,
+                _inputMove.y * _speed
+            );
+            // カメラの角度分だけ移動量を回転
+            moveVelocity = Quaternion.Euler(0, cameraAngleY, 0) * moveVelocity;
+
+            // 現在フレームの移動量を移動速度から計算
+            var moveDelta = moveVelocity * Time.deltaTime;
+
+            // CharacterControllerに移動量を指定し、オブジェクトを動かす
+            _characterController.Move(moveDelta);
+
+            if (_inputMove != Vector2.zero)
+            {
+                // 移動入力がある場合は、振り向き動作も行う
+
+                // 操作入力からy軸周りの目標角度[deg]を計算
+                var targetAngleY = -Mathf.Atan2(_inputMove.y, _inputMove.x)
+                    * Mathf.Rad2Deg + 90;
+                // カメラの角度分だけ振り向く角度を補正
+                targetAngleY += cameraAngleY;
+
+                // イージングしながら次の回転角度[deg]を計算
+                var angleY = Mathf.SmoothDampAngle(
+                    _transform.eulerAngles.y,
+                    targetAngleY,
+                    ref _turnVelocity,
+                    0.1f
+                );
+
+                // オブジェクトの回転を更新
+                _transform.rotation = Quaternion.Euler(0, angleY, 0);
+            }
+
+            anim.SetFloat("Speed", moveVelocity.magnitude);
 
             // 以下、Animatorの各ステート中での処理
             // Locomotion中
@@ -93,7 +176,7 @@ namespace UnityChan
             // 現在のベースレイヤーがjumpStateの時
             else if (currentBaseState.nameHash == jumpState)
             {
-                cameraObject.SendMessage("setCameraPositionJumpView");  // ジャンプ中のカメラに変更
+                /*cameraObject.SendMessage("setCameraPositionJumpView");  */// ジャンプ中のカメラに変更
                                                                         // ステートがトランジション中でない場合
                 if (!anim.IsInTransition(0))
                 {
@@ -118,8 +201,10 @@ namespace UnityChan
                             if (hitInfo.distance > useCurvesHeight)
                             {
                                 col.height = orgColHight - jumpHeight;          // 調整されたコライダーの高さ
+                                _characterController.height = orgColHight - jumpHeight;
                                 float adjCenterY = orgVectColCenter.y + jumpHeight;
                                 col.center = new Vector3(0, adjCenterY, 0); // 調整されたコライダーのセンター
+                                _characterController.center = new Vector3(0, adjCenterY, 0);
                             }
                             else
                             {
@@ -160,28 +245,15 @@ namespace UnityChan
             }
         }
 
-        // ----------------------------------------------------------------------- InputSystem
-        public void OnMove(InputAction.CallbackContext context)
+        private bool CheckGrounded()
         {
-            var move = context.ReadValue<Vector2>();
+            // 放つ光線の初期位置と姿勢
+            // 若干身体にめり込ませた位置から発射しないと正しく判定できない時がある
+            var ray = new Ray(origin: transform.position + Vector3.up * _rayOffset, direction: Vector3.down);
 
-            velocity = new Vector3(move.x, 0, move.y);
-
-            anim.SetFloat("Speed", velocity.magnitude);
-        }
-
-        public void OnJump(InputAction.CallbackContext context)
-        {
-            //アニメーションのステートがLocomotionの最中のみジャンプできる
-            if (currentBaseState.nameHash == locoState)
-            {
-                //ステート遷移中でなかったらジャンプできる
-                if (!anim.IsInTransition(0))
-                {
-                    rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
-                    anim.SetBool("Jump", true);     // Animatorにジャンプに切り替えるフラグを送る
-                }
-            }
+            // Raycastがhitするかどうかで判定
+            // レイヤの指定を忘れずに
+            return Physics.Raycast(ray, _rayLength, _layerMask);
         }
 
         // キャラクターのコライダーサイズのリセット関数
@@ -190,6 +262,8 @@ namespace UnityChan
             // コンポーネントのHeight、Centerの初期値を戻す
             col.height = orgColHight;
             col.center = orgVectColCenter;
+            _characterController.height = orgColHight;
+            _characterController.center = orgVectColCenter;
         }
     }
 }
