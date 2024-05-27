@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cysharp.Threading.Tasks;
 
 
 namespace UnityChan
@@ -19,6 +21,10 @@ namespace UnityChan
         public bool useCurves = true;               // Mecanimでカーブ調整を使うか設定する
                                                     // このスイッチが入っていないとカーブは使われない
         public float useCurvesHeight = 0.5f;        // カーブ補正の有効高さ（地面をすり抜けやすい時には大きくする）
+
+        // ノックバック宣言
+        private bool isMove = true;
+        private Vector3 knockbackVelocity = Vector3.zero;
 
         // 以下キャラクターコントローラ用パラメタ
         [Header("移動の速さ"), SerializeField]
@@ -133,9 +139,10 @@ namespace UnityChan
 
             // 現在フレームの移動量を移動速度から計算
             var moveDelta = moveVelocity * Time.deltaTime;
-
-            // CharacterControllerに移動量を指定し、オブジェクトを動かす
-            _characterController.Move(moveDelta);
+            if (isMove){
+                // CharacterControllerに移動量を指定し、オブジェクトを動かす
+                _characterController.Move(moveDelta);
+            }
 
             if (_inputMove != Vector2.zero)
             {
@@ -243,6 +250,13 @@ namespace UnityChan
                     anim.SetBool("Rest", false);
                 }
             }
+
+            // ノックバックの方向決定
+            if (knockbackVelocity != Vector3.zero)
+            {
+                var characterController = GetComponent<CharacterController>();
+                characterController.Move(knockbackVelocity * Time.deltaTime);
+            }
         }
 
         private bool CheckGrounded()
@@ -264,6 +278,45 @@ namespace UnityChan
             col.center = orgVectColCenter;
             _characterController.height = orgColHight;
             _characterController.center = orgVectColCenter;
+        }
+
+        // ノックバック処理
+        private async void OnCollisionEnter(Collision other)
+        {
+            if (other.gameObject.CompareTag("Enemy"))  // 衝突対象が「Enemy」タグのオブジェクトである場合
+            {
+                Debug.Log("Enemyと衝突しました");
+
+                // 無敵中は処理しない
+                if (!isMove)
+                {
+                    return;
+                }
+
+                isMove = false;
+
+
+                //ダメージアニメーションを再生
+                if (anim != null)
+                {
+                    anim.SetBool("Damage", true);
+                }
+
+                // ノックバック処理
+                knockbackVelocity = (-transform.forward * 5f);
+
+                await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+
+                knockbackVelocity = Vector3.zero;
+
+                await UniTask.Delay(TimeSpan.FromSeconds(2.2f));
+                anim.SetBool("Damage", false);
+
+                isMove = true;
+
+
+
+            }
         }
     }
 }
