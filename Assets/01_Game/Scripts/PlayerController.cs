@@ -27,8 +27,11 @@ namespace UnityChan
         private Vector3 knockbackVelocity = Vector3.zero;
 
         // 以下キャラクターコントローラ用パラメタ
-        [Header("移動の速さ"), SerializeField]
-        private float _speed = 3;
+        [Header("パラメータ")]
+        [SerializeField, Tooltip("移動速度")] private float _speed = 3;
+        [SerializeField, Tooltip("回転速度")] private float _rotateSpeed = 1f;
+        [SerializeField, Tooltip("ジャンプ力")] private float _jumpPower = 3.0f;
+        [SerializeField, Tooltip("ノックバック力")] private float _knockbackPower = 1f;
 
         // アイテムによるスピードへの効果格納用 1f=等倍
         private float _itemSpd = 1f;
@@ -44,9 +47,6 @@ namespace UnityChan
             get { return _objectSpd; }
             set { _objectSpd = value; }
         }
-
-        // ジャンプ威力
-        [SerializeField] private float jumpPower = 3.0f;
 
         // プレイヤーのムテキ状態格納
         [Header("無敵"),SerializeField]
@@ -73,14 +73,11 @@ namespace UnityChan
         // Rayの判定に用いるLayer
         [SerializeField] private LayerMask _layerMask = default;
 
-        private bool _isGround;
+        private bool _isGround = true;
 
         private Transform _transform;
-        private CharacterController _characterController;
 
         private Vector2 _inputMove;
-        private float _verticalVelocity;
-        private float _turnVelocity;
 
         // キャラクターコントローラ（カプセルコライダ）の参照
         private CapsuleCollider col;
@@ -113,9 +110,9 @@ namespace UnityChan
             if (currentBaseState.nameHash == locoState)
             {
                 //ステート遷移中でなかったらジャンプできる
-                if (!anim.IsInTransition(0))
+                if (!anim.IsInTransition(0) && _isGround)
                 {
-                    rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
+                    rb.AddForce(transform.up * _jumpPower, ForceMode.VelocityChange);
                     anim.SetBool("Jump", true);     // Animatorにジャンプに切り替えるフラグを送る
                 }
             }
@@ -125,7 +122,6 @@ namespace UnityChan
         private void Awake()
         {
             _transform = transform;
-            _characterController = GetComponent<CharacterController>();
 
             if (_targetCamera == null)
                 _targetCamera = Camera.main;
@@ -155,48 +151,29 @@ namespace UnityChan
             currentBaseState = anim.GetCurrentAnimatorStateInfo(0); // 参照用のステート変数にBase Layer (0)の現在のステートを設定する
             rb.useGravity = true;//ジャンプ中に重力を切るので、それ以外は重力の影響を受けるようにする
 
-            // カメラの向き（角度[deg]）取得
-            var cameraAngleY = _targetCamera.transform.eulerAngles.y;
+            // カメラの方向から、X-Z平面の単位ベクトルを取得
+            Vector3 cameraForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
 
-            // 操作入力と鉛直方向速度から、現在速度を計算
-            var moveVelocity = new Vector3(
-                _inputMove.x * (_speed * _itemSpd * _objectSpd),
-                _verticalVelocity,
-                _inputMove.y * (_speed * _itemSpd * _objectSpd)
-            );
-            // カメラの角度分だけ移動量を回転
-            moveVelocity = Quaternion.Euler(0, cameraAngleY, 0) * moveVelocity;
+            // 方向キーの入力値とカメラの向きから、移動方向を決定
+            Vector3 moveForward = cameraForward * _inputMove.y + Camera.main.transform.right * _inputMove.x;
 
-            // 現在フレームの移動量を移動速度から計算
-            var moveDelta = moveVelocity * Time.deltaTime;
-            if (isMove){
-                // CharacterControllerに移動量を指定し、オブジェクトを動かす
-                _characterController.Move(moveDelta);
-            }
-
-            if (_inputMove != Vector2.zero)
+            // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
+            if (isMove)
             {
-                // 移動入力がある場合は、振り向き動作も行う
-
-                // 操作入力からy軸周りの目標角度[deg]を計算
-                var targetAngleY = -Mathf.Atan2(_inputMove.y, _inputMove.x)
-                    * Mathf.Rad2Deg + 90;
-                // カメラの角度分だけ振り向く角度を補正
-                targetAngleY += cameraAngleY;
-
-                // イージングしながら次の回転角度[deg]を計算
-                var angleY = Mathf.SmoothDampAngle(
-                    _transform.eulerAngles.y,
-                    targetAngleY,
-                    ref _turnVelocity,
-                    0.1f
-                );
-
-                // オブジェクトの回転を更新
-                _transform.rotation = Quaternion.Euler(0, angleY, 0);
+                rb.velocity = moveForward * _speed + new Vector3(0, rb.velocity.y, 0);
             }
 
-            anim.SetFloat("Speed", moveVelocity.magnitude);
+            // キャラクターの向きを進行方向に
+            if (moveForward != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(moveForward);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotateSpeed * Time.deltaTime);
+            }
+
+            _isGround = CheckGrounded();
+            Debug.Log(_isGround);
+
+            anim.SetFloat("Speed", rb.velocity.magnitude);
 
             // 以下、Animatorの各ステート中での処理
             // Locomotion中
@@ -238,10 +215,8 @@ namespace UnityChan
                             if (hitInfo.distance > useCurvesHeight)
                             {
                                 col.height = orgColHight - jumpHeight;          // 調整されたコライダーの高さ
-                                _characterController.height = orgColHight - jumpHeight;
                                 float adjCenterY = orgVectColCenter.y + jumpHeight;
                                 col.center = new Vector3(0, adjCenterY, 0); // 調整されたコライダーのセンター
-                                _characterController.center = new Vector3(0, adjCenterY, 0);
                             }
                             else
                             {
@@ -280,13 +255,6 @@ namespace UnityChan
                     anim.SetBool("Rest", false);
                 }
             }
-
-            // ノックバックの方向決定
-            if (knockbackVelocity != Vector3.zero)
-            {
-                var characterController = GetComponent<CharacterController>();
-                characterController.Move(knockbackVelocity * Time.deltaTime);
-            }
         }
 
         private bool CheckGrounded()
@@ -306,18 +274,16 @@ namespace UnityChan
             // コンポーネントのHeight、Centerの初期値を戻す
             col.height = orgColHight;
             col.center = orgVectColCenter;
-            _characterController.height = orgColHight;
-            _characterController.center = orgVectColCenter;
         }
 
         // ノックバック処理
-        private async void OnCollisionEnter(Collision other)
+        private async void OnCollisionEnter(Collision collision)
         {
-            if (other.gameObject.CompareTag("Enemy"))  // 衝突対象が「Enemy」タグのオブジェクトである場合
+            if (collision.gameObject.CompareTag("Enemy"))  // 衝突対象が「Enemy」タグのオブジェクトである場合
             {
                 Debug.Log("Enemyと衝突しました");
 
-                // 無敵中は処理しない
+                // ノックバック中は処理しない
                 if (!isMove)
                 {
                     return;
@@ -325,27 +291,19 @@ namespace UnityChan
 
                 isMove = false;
 
-
                 //ダメージアニメーションを再生
                 if (anim != null)
                 {
                     anim.SetBool("Damage", true);
                 }
 
-                // ノックバック処理
-                knockbackVelocity = (-transform.forward * 5f);
+                rb.AddForce(-transform.forward * _knockbackPower, ForceMode.VelocityChange);
 
-                await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+                await UniTask.Delay(TimeSpan.FromSeconds(2.5f));
 
-                knockbackVelocity = Vector3.zero;
-
-                await UniTask.Delay(TimeSpan.FromSeconds(2.2f));
                 anim.SetBool("Damage", false);
 
                 isMove = true;
-
-
-
             }
         }
     }
