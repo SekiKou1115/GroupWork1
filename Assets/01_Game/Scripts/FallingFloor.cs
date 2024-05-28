@@ -12,25 +12,13 @@ public class FallingFloor : MonoBehaviour
     [SerializeField] private float _waitTime;
     private Rigidbody _rigidBody;
 
+    // [Obj]衝突判定用のコライダー
+    private BoxCollider _boxCollider;
+
     private void Start()
     {
         _rigidBody = GetComponent<Rigidbody>();
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            collision.transform.SetParent(gameObject.transform);
-        }
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            collision.transform.parent = null;
-        }
+        _boxCollider = GetComponent<BoxCollider>();
     }
 
     private async void OnCollisionEnter(Collision collision)
@@ -51,6 +39,8 @@ public class FallingFloor : MonoBehaviour
             | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
 
         await UniTask.Delay(TimeSpan.FromSeconds(_waitTime));
-        Destroy(gameObject);
+        //Destroy(gameObject);
+        this.gameObject.SetActive(false);
+        _boxCollider.enabled = false;
     }
 }
