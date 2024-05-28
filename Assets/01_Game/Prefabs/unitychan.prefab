@@ -454,6 +454,7 @@ Transform:
   - {fileID: 373012320747452976}
   - {fileID: 4566872067433204564}
   - {fileID: 3924474508492733812}
+  - {fileID: 6346471019872182999}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &4600637260762939221
@@ -571,6 +572,8 @@ MonoBehaviour:
   useCurvesHeight: 0.5
   _speed: 3
   jumpPower: 3
+  _invincible: 0
+  _invincibleEffect: {fileID: 0}
   _targetCamera: {fileID: 0}
   _rayLength: 1
   _rayOffset: 0
@@ -7443,3 +7446,65 @@ Transform:
   - {fileID: 1144184523719036702}
   m_Father: {fileID: 6093805665413751840}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &8704845161568211769
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1553839401689452398}
+    m_Modifications:
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8401956680248745961, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+      propertyPath: m_Name
+      value: InvincibleEffects
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+--- !u!4 &6346471019872182999 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2368580359345926638, guid: 7e0f8b6334306ad40852baf91c6d5450, type: 3}
+  m_PrefabInstance: {fileID: 8704845161568211769}
+  m_PrefabAsset: {fileID: 0}
