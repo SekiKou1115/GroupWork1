@@ -13,6 +13,7 @@ public class Wall : MonoBehaviour
 {
     [SerializeField] private float _waitTime;
 
+    [SerializeField] private GameObject _object;
     [SerializeField] private float _speed;
     [SerializeField] private float _duration;
     [SerializeField] private Ease _ease;
@@ -40,7 +41,7 @@ public class Wall : MonoBehaviour
 
     private async UniTask MoveTask(CancellationToken ct)
     {
-        await transform.DOMove(new Vector3(0, 3, 0), _duration)
+        await transform.DOMove(new Vector3(0, _object.transform.position.y, _object.transform.position.z), _duration)
             .SetLink(gameObject)
             .SetEase(_ease)
             .ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, cancellationToken: ct);
