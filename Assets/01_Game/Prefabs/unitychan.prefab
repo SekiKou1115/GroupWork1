@@ -547,7 +547,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 3
   m_Height: 1.5
-  m_Radius: 0.5
+  m_Radius: 0.1
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -571,6 +571,8 @@ MonoBehaviour:
   useCurvesHeight: 0.5
   _speed: 3
   jumpPower: 3
+  _invincible: 0
+  _invincibleEffect: {fileID: 0}
   _targetCamera: {fileID: 0}
   _rayLength: 1
   _rayOffset: 0
