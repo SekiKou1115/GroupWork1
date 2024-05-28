@@ -39,16 +39,21 @@ namespace UnityChan
             set { _objectSpd = value; }
         }
 
+        // ジャンプ威力
+        [SerializeField] private float jumpPower = 3.0f;
+
         // プレイヤーのムテキ状態格納
+        [Header("無敵"),SerializeField]
         private bool _invincible = false;
         public bool invincible
         {
-            get { return invincible; }
-            set { invincible = value; }
+            get { return _invincible; }
+            set { _invincible = value; }
         }
 
-        // ジャンプ威力
-        [SerializeField] private float jumpPower = 3.0f;
+        // ムテキ時のエフェクト
+        [SerializeField]
+        public ParticleSystem _invincibleEffect;
 
         [Header("カメラ"), SerializeField]
         private Camera _targetCamera;
@@ -133,6 +138,8 @@ namespace UnityChan
             // CapsuleColliderコンポーネントのHeight、Centerの初期値を保存する
             orgColHight = col.height;
             orgVectColCenter = col.center;
+            // ParticleSystemコンポーネント取得
+            _invincibleEffect = GetComponentInChildren<ParticleSystem>();
         }
 
         // 以下、メイン処理.リジッドボディと絡めるので、FixedUpdate内で処理を行う.

@@ -49,10 +49,7 @@ public class SpeedChanger : MonoBehaviour
     {
         if (other.gameObject.name == _player.name)
         {
-            if (_isBuff)
-                ChangeSpeed(objectType);
-            else if (!_isBuff && !_player.invincible)
-                ChangeSpeed(objectType);
+            ChangeSpeed(objectType);
         }
     }
 
@@ -74,7 +71,10 @@ public class SpeedChanger : MonoBehaviour
                 Gotton();
                 break;
             case ObjectType.Object:
-                _player.objectSpd = _changeSpeed;
+                if(_isBuff)
+                    _player.objectSpd = _changeSpeed;
+                else if(!_isBuff && !_player.invincible)
+                    _player.objectSpd = _changeSpeed;
                 break;
             default:
                 break;

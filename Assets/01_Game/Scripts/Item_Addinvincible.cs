@@ -4,11 +4,12 @@ using System.Collections;
 
 public class Item_Addinvincible : MonoBehaviour
 {
-    // [Obj/Item]インスペクター上のプレイヤーをアタッチ。
+    // [Item]インスペクター上のプレイヤーをアタッチ。
     private PlayerController _player = null;
 
     // [Item]アイテムの3D
-    [SerializeField] private GameObject _item3d;
+    [SerializeField] 
+    private GameObject _item3d;
 
     // [Item]衝突判定用のコライダー
     private CapsuleCollider _capsuleCollider;
@@ -16,7 +17,7 @@ public class Item_Addinvincible : MonoBehaviour
     [Header("効果")]
     // 効果時間 「触れている間のみ」にしたい場合でも設定してね。
     [SerializeField]
-    private float _LimitTime = 0.1f;
+    private float _LimitTime = 1f;
 
     private void Start()
     {
@@ -34,24 +35,23 @@ public class Item_Addinvincible : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.name == _player.name)
-        {
-            RemoveInvincible();
-        }
-    }
-
     // 無敵オン！
     private void AddInvincible()
     {
+        if (_player.itemSpd < 1)
+            _player.itemSpd = 1;
+        if(_player.objectSpd < 1)
+            _player.objectSpd = 1;
         _player.invincible = true;
+        _player._invincibleEffect.Play();
+        Gotton();
     }
 
     // 無敵オフ…
     private void RemoveInvincible()
     {
         _player.invincible = false;
+        _player._invincibleEffect.Stop();
     }
 
     // 無敵オフコルーチン
