@@ -5,7 +5,6 @@ using System.Collections;
 public class SpeedChanger : MonoBehaviour
 {
     // [Obj/Item]インスペクター上のプレイヤーをアタッチ。
-    [SerializeField]
     private PlayerController _player = null;
 
     // [Item]アイテムの3D
@@ -48,19 +47,12 @@ public class SpeedChanger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_isBuff)
+        if (other.gameObject.name == _player.name)
         {
-            if (other.gameObject.name == _player.name)
-            {
+            if (_isBuff)
                 ChangeSpeed(objectType);
-            }
-        }
-        else
-        {
-            if (other.gameObject.tag != "Player_Hyper")
-            {
+            else if (!_isBuff && !_player.invincible)
                 ChangeSpeed(objectType);
-            }
         }
     }
 
