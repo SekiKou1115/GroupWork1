@@ -30,8 +30,36 @@ namespace UnityChan
         [Header("移動の速さ"), SerializeField]
         private float _speed = 3;
 
+        // アイテムによるスピードへの効果格納用 1f=等倍
+        private float _itemSpd = 1f;
+        public float itemSpd
+        {
+            get { return _itemSpd; }
+            set { _itemSpd = value; }
+        }
+        // オブジェクトによるスピードへの効果格納用 1f=等倍
+        private float _objectSpd = 1f;
+        public float objectSpd
+        {
+            get { return _objectSpd; }
+            set { _objectSpd = value; }
+        }
+
         // ジャンプ威力
         [SerializeField] private float jumpPower = 3.0f;
+
+        // プレイヤーのムテキ状態格納
+        [Header("無敵"),SerializeField]
+        private bool _invincible = false;
+        public bool invincible
+        {
+            get { return _invincible; }
+            set { _invincible = value; }
+        }
+
+        // ムテキ時のエフェクト
+        [SerializeField]
+        public ParticleSystem _invincibleEffect;
 
         [Header("カメラ"), SerializeField]
         private Camera _targetCamera;
@@ -116,6 +144,8 @@ namespace UnityChan
             // CapsuleColliderコンポーネントのHeight、Centerの初期値を保存する
             orgColHight = col.height;
             orgVectColCenter = col.center;
+            // ParticleSystemコンポーネント取得
+            _invincibleEffect = GetComponentInChildren<ParticleSystem>();
         }
 
         // 以下、メイン処理.リジッドボディと絡めるので、FixedUpdate内で処理を行う.
@@ -130,9 +160,9 @@ namespace UnityChan
 
             // 操作入力と鉛直方向速度から、現在速度を計算
             var moveVelocity = new Vector3(
-                _inputMove.x * _speed,
+                _inputMove.x * (_speed * _itemSpd * _objectSpd),
                 _verticalVelocity,
-                _inputMove.y * _speed
+                _inputMove.y * (_speed * _itemSpd * _objectSpd)
             );
             // カメラの角度分だけ移動量を回転
             moveVelocity = Quaternion.Euler(0, cameraAngleY, 0) * moveVelocity;
