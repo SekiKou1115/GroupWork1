@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 51b74d7bad397457d883c5940f7664d8, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.009012707, g: 0.013102867, b: 0.020503506, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -436,12 +436,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 81282608}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 6, z: 46}
   m_LocalScale: {x: 3, y: 0.5, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 2089791371}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &86831205
 PrefabInstance:
@@ -1032,11 +1032,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 984748309845663276, guid: 6b067f342d42b4747bc2e00f348612c4, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.08056669
+      value: 0.08056668
       objectReference: {fileID: 0}
     - target: {fileID: 984748309845663276, guid: 6b067f342d42b4747bc2e00f348612c4, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.015209055
+      value: -0.015209053
       objectReference: {fileID: 0}
     - target: {fileID: 1819948904915261904, guid: 6b067f342d42b4747bc2e00f348612c4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4027,6 +4027,7 @@ Transform:
   - {fileID: 1745109821}
   - {fileID: 70247362}
   - {fileID: 475655131}
+  - {fileID: 81282612}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2102670479 stripped
@@ -4043,4 +4044,3 @@ SceneRoots:
   - {fileID: 2089791371}
   - {fileID: 748339340}
   - {fileID: 894755066}
-  - {fileID: 81282612}
