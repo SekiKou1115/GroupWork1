@@ -77,6 +77,7 @@ namespace UnityChan
         [SerializeField] private LayerMask _layerMask = default;
 
         [SerializeField] bool _isGameOver = false;   //ゲームオーバー判定
+        [SerializeField] GameObject _gameOverMenu;
 
         private bool _isGround = true;
 
@@ -96,6 +97,7 @@ namespace UnityChan
         private AnimatorStateInfo currentBaseState;         // base layerで使われる、アニメーターの現在の状態の参照
 
         private GameObject cameraObject;    // メインカメラへの参照
+
 
         // アニメーター各ステートへの参照
         static int idleState = Animator.StringToHash("Base Layer.Idle");
@@ -128,6 +130,8 @@ namespace UnityChan
         {
             _animation.SetBool("Reflesh", true);
             _isGameOver = true;
+            _gameOverMenu.SetActive(true);
+            Time.timeScale = 0;
         }
 
         // ノックバック処理

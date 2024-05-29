@@ -8,7 +8,6 @@ public class NewGoalManager : MonoBehaviour
 {
     [SerializeField] GameObject _player;
     [SerializeField] GameObject _clear;
-    [SerializeField] bool _isGoal = false;
 
    
 
@@ -21,7 +20,6 @@ public class NewGoalManager : MonoBehaviour
 
             _player.GetComponent<Animator>().enabled = false;
 
-            _isGoal = true;
         }
     }
 
