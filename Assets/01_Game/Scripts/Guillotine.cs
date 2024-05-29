@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using UnityChan;
 using UnityEngine;
 
 public class Guillotine : MonoBehaviour
@@ -62,6 +63,7 @@ public class Guillotine : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            PlayerController.Instance.KnockBack();
             Debug.Log("É_ÉÅÅ[ÉWÇéÛÇØÇΩ");
         }
     }

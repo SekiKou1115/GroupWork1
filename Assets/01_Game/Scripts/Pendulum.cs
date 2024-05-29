@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using UnityChan;
 using UnityEngine;
 
 public class Pendulum : MonoBehaviour
@@ -17,6 +18,7 @@ public class Pendulum : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            PlayerController.Instance.KnockBack();
             Debug.Log("ƒ_ƒ[ƒW‚ğó‚¯‚½");
         }
     }

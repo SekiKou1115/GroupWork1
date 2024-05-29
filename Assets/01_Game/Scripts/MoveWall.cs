@@ -35,6 +35,7 @@ public class Wall : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
+            PlayerController.Instance.GameOver();
             Debug.Log("ƒ_ƒ[ƒW‚ğó‚¯‚½");
         }
     }
