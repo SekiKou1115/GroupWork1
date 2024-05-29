@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 
 namespace UnityChan
 {
+
     // 必要なコンポーネントの列記
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(CapsuleCollider))]
@@ -16,6 +17,8 @@ namespace UnityChan
 
     public class PlayerController : MonoBehaviour
     {
+        public static PlayerController Instance;
+
         public float animSpeed = 1.5f;              // アニメーション再生速度設定
         public float lookSmoother = 3.0f;           // a smoothing setting for camera motion
         public bool useCurves = true;               // Mecanimでカーブ調整を使うか設定する
@@ -34,11 +37,11 @@ namespace UnityChan
         [SerializeField, Tooltip("ノックバック力")] private float _knockbackPower = 1f;
 
         // アイテムによるスピードへの効果格納用 1f=等倍
-        private float _itemSpd = 1f;
-        public float itemSpd
+        private float _itemSpeed = 1f;
+        public float itemSpeed
         {
-            get { return _itemSpd; }
-            set { _itemSpd = value; }
+            get { return _itemSpeed; }
+            set { _itemSpeed = value; }
         }
         // オブジェクトによるスピードへの効果格納用 1f=等倍
         private float _objectSpd = 1f;
@@ -73,6 +76,8 @@ namespace UnityChan
         // Rayの判定に用いるLayer
         [SerializeField] private LayerMask _layerMask = default;
 
+        [SerializeField] bool _isGameOver = false;   //ゲームオーバー判定
+
         private bool _isGround = true;
 
         private Transform _transform;
@@ -87,7 +92,7 @@ namespace UnityChan
         // CapsuleColliderで設定されているコライダのHeiht、Centerの初期値を収める変数
         private float orgColHight;
         private Vector3 orgVectColCenter;
-        private Animator anim;                          // キャラにアタッチされるアニメーターへの参照
+        private Animator _animation;                        // キャラにアタッチされるアニメーターへの参照
         private AnimatorStateInfo currentBaseState;         // base layerで使われる、アニメーターの現在の状態の参照
 
         private GameObject cameraObject;    // メインカメラへの参照
@@ -110,17 +115,52 @@ namespace UnityChan
             if (currentBaseState.nameHash == locoState)
             {
                 //ステート遷移中でなかったらジャンプできる
-                if (!anim.IsInTransition(0) && _isGround)
+                if (!_animation.IsInTransition(0) && _isGround)
                 {
                     rb.AddForce(transform.up * _jumpPower, ForceMode.VelocityChange);
-                    anim.SetBool("Jump", true);     // Animatorにジャンプに切り替えるフラグを送る
+                    _animation.SetBool("Jump", true);     // Animatorにジャンプに切り替えるフラグを送る
                 }
             }
+        }
+
+        // ゲームオーバー処理
+        public void GameOver()
+        {
+            _animation.SetBool("Reflesh", true);
+            _isGameOver = true;
+        }
+
+        // ノックバック処理
+        public async void KnockBack()
+        {
+            // ノックバック中は処理しない
+            if (!isMove)
+            {
+                return;
+            }
+
+            isMove = false;
+
+            //ダメージアニメーションを再生
+            if (_animation != null)
+            {
+                _animation.SetBool("Damage", true);
+            }
+
+            rb.AddForce(-transform.forward * _knockbackPower, ForceMode.VelocityChange);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(2.5f));
+
+            _animation.SetBool("Damage", false);
+
+            isMove = true;
         }
 
         // ------------------------------------------------------------------------ UnityMessage
         private void Awake()
         {
+            Instance = this;
+
             _transform = transform;
 
             if (_targetCamera == null)
@@ -131,7 +171,7 @@ namespace UnityChan
         void Start()
         {
             // Animatorコンポーネントを取得する
-            anim = GetComponent<Animator>();
+            _animation = GetComponent<Animator>();
             // CapsuleColliderコンポーネントを取得する（カプセル型コリジョン）
             col = GetComponent<CapsuleCollider>();
             rb = GetComponent<Rigidbody>();
@@ -147,8 +187,8 @@ namespace UnityChan
         // 以下、メイン処理.リジッドボディと絡めるので、FixedUpdate内で処理を行う.
         void FixedUpdate()
         {
-            anim.speed = animSpeed;                             // Animatorのモーション再生速度に animSpeedを設定する
-            currentBaseState = anim.GetCurrentAnimatorStateInfo(0); // 参照用のステート変数にBase Layer (0)の現在のステートを設定する
+            _animation.speed = animSpeed;                             // Animatorのモーション再生速度に animSpeedを設定する
+            currentBaseState = _animation.GetCurrentAnimatorStateInfo(0); // 参照用のステート変数にBase Layer (0)の現在のステートを設定する
             rb.useGravity = true;//ジャンプ中に重力を切るので、それ以外は重力の影響を受けるようにする
 
             // カメラの方向から、X-Z平面の単位ベクトルを取得
@@ -158,9 +198,9 @@ namespace UnityChan
             Vector3 moveForward = cameraForward * _inputMove.y + Camera.main.transform.right * _inputMove.x;
 
             // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
-            if (isMove)
+            if (isMove && !_isGameOver)
             {
-                rb.velocity = moveForward * (_speed * itemSpd * _objectSpd) + new Vector3(0, rb.velocity.y, 0);
+                rb.velocity = moveForward * (_speed * itemSpeed * _objectSpd) + new Vector3(0, rb.velocity.y, 0);
             }
 
             // キャラクターの向きを進行方向に
@@ -173,7 +213,7 @@ namespace UnityChan
             _isGround = CheckGrounded();
             Debug.Log(_isGround);
 
-            anim.SetFloat("Speed", rb.velocity.magnitude);
+            _animation.SetFloat("Speed", rb.velocity.magnitude);
 
             // 以下、Animatorの各ステート中での処理
             // Locomotion中
@@ -192,7 +232,7 @@ namespace UnityChan
             {
                 /*cameraObject.SendMessage("setCameraPositionJumpView");  */// ジャンプ中のカメラに変更
                                                                             // ステートがトランジション中でない場合
-                if (!anim.IsInTransition(0))
+                if (!_animation.IsInTransition(0))
                 {
 
                     // 以下、カーブ調整をする場合の処理
@@ -201,8 +241,8 @@ namespace UnityChan
                         // 以下JUMP00アニメーションについているカーブJumpHeightとGravityControl
                         // JumpHeight:JUMP00でのジャンプの高さ（0〜1）
                         // GravityControl:1⇒ジャンプ中（重力無効）、0⇒重力有効
-                        float jumpHeight = anim.GetFloat("JumpHeight");
-                        float gravityControl = anim.GetFloat("GravityControl");
+                        float jumpHeight = _animation.GetFloat("JumpHeight");
+                        float gravityControl = _animation.GetFloat("GravityControl");
                         if (gravityControl > 0)
                             rb.useGravity = false;  //ジャンプ中の重力の影響を切る
 
@@ -226,7 +266,7 @@ namespace UnityChan
                         }
                     }
                     // Jump bool値をリセットする（ループしないようにする）
-                    anim.SetBool("Jump", false);
+                    _animation.SetBool("Jump", false);
                 }
             }
             // IDLE中の処理
@@ -241,7 +281,7 @@ namespace UnityChan
                 // スペースキーを入力したらRest状態になる
                 if (Input.GetButtonDown("Jump"))
                 {
-                    anim.SetBool("Rest", true);
+                    _animation.SetBool("Rest", true);
                 }
             }
             // REST中の処理
@@ -250,9 +290,9 @@ namespace UnityChan
             {
                 //cameraObject.SendMessage("setCameraPositionFrontView");		// カメラを正面に切り替える
                 // ステートが遷移中でない場合、Rest bool値をリセットする（ループしないようにする）
-                if (!anim.IsInTransition(0))
+                if (!_animation.IsInTransition(0))
                 {
-                    anim.SetBool("Rest", false);
+                    _animation.SetBool("Rest", false);
                 }
             }
         }
@@ -274,37 +314,6 @@ namespace UnityChan
             // コンポーネントのHeight、Centerの初期値を戻す
             col.height = orgColHight;
             col.center = orgVectColCenter;
-        }
-
-        // ノックバック処理
-        private async void OnCollisionEnter(Collision collision)
-        {
-            if (collision.gameObject.CompareTag("Enemy"))  // 衝突対象が「Enemy」タグのオブジェクトである場合
-            {
-                Debug.Log("Enemyと衝突しました");
-
-                // ノックバック中は処理しない
-                if (!isMove)
-                {
-                    return;
-                }
-
-                isMove = false;
-
-                //ダメージアニメーションを再生
-                if (anim != null)
-                {
-                    anim.SetBool("Damage", true);
-                }
-
-                rb.AddForce(-transform.forward * _knockbackPower, ForceMode.VelocityChange);
-
-                await UniTask.Delay(TimeSpan.FromSeconds(2.5f));
-
-                anim.SetBool("Damage", false);
-
-                isMove = true;
-            }
         }
     }
 }

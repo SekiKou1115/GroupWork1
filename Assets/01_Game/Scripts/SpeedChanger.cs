@@ -67,7 +67,7 @@ public class SpeedChanger : MonoBehaviour
         switch (type)
         {
             case ObjectType.Item:
-                _player.itemSpd = _changeSpeed;
+                _player.itemSpeed = _changeSpeed;
                 Gotton();
                 break;
             case ObjectType.Object:
@@ -87,7 +87,7 @@ public class SpeedChanger : MonoBehaviour
         switch (type)
         {
             case ObjectType.Item:
-                _player.itemSpd = 1;
+                _player.itemSpeed = 1;
                 break;
             case ObjectType.Object:
                 _player.objectSpd = 1;

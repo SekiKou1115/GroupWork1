@@ -38,8 +38,8 @@ public class Item_Addinvincible : MonoBehaviour
     // –³“GƒIƒ“I
     private void AddInvincible()
     {
-        if (_player.itemSpd < 1)
-            _player.itemSpd = 1;
+        if (_player.itemSpeed < 1)
+            _player.itemSpeed = 1;
         if(_player.objectSpd < 1)
             _player.objectSpd = 1;
         _player.invincible = true;
