@@ -35,6 +35,7 @@ public class FallingFloor : MonoBehaviour
         await UniTask.Delay(TimeSpan.FromSeconds(_waitTime));
 
         _rigidBody.useGravity = true;
+        _rigidBody.isKinematic = false;
         _rigidBody.constraints = RigidbodyConstraints.FreezeRotation
             | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
 
