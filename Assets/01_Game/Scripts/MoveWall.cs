@@ -7,7 +7,6 @@ using System.Threading;
 using TMPro;
 using UnityChan;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Wall : MonoBehaviour
 {

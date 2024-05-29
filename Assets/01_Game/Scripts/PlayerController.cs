@@ -29,12 +29,28 @@ namespace UnityChan
         private bool isMove = true;
         private Vector3 knockbackVelocity = Vector3.zero;
 
+        // ボイス用のAudioSource
+        [SerializeField] private AudioSource _voiceAudioSource;
+
+        private enum VoiceType
+        {
+            Start,
+            Damage,
+            GameClear,
+            GameOver
+        }
+
         // 以下キャラクターコントローラ用パラメタ
         [Header("パラメータ")]
         [SerializeField, Tooltip("移動速度")] private float _speed = 3;
         [SerializeField, Tooltip("回転速度")] private float _rotateSpeed = 1f;
         [SerializeField, Tooltip("ジャンプ力")] private float _jumpPower = 3.0f;
         [SerializeField, Tooltip("ノックバック力")] private float _knockbackPower = 1f;
+
+        [SerializeField, Tooltip("StartVoice")] private AudioClip _startVoice;
+        [SerializeField, Tooltip("DamageVoice")] private AudioClip _damageVoice;
+        [SerializeField, Tooltip("GameClearVoice")] private AudioClip _gameClearVoice;
+        [SerializeField, Tooltip("GameOverVoice")] private AudioClip _gameOverVoice;
 
         // アイテムによるスピードへの効果格納用 1f=等倍
         private float _itemSpeed = 1f;
@@ -125,6 +141,13 @@ namespace UnityChan
             }
         }
 
+        // ゲームクリア処理
+        public void GameClear()
+        {
+            // ダメージボイス再生
+            PlayVoice(VoiceType.GameClear);
+        }
+
         // ゲームオーバー処理
         public void GameOver()
         {
@@ -132,6 +155,9 @@ namespace UnityChan
             _isGameOver = true;
             _gameOverMenu.SetActive(true);
             Time.timeScale = 0;
+
+            // ダメージボイス再生
+            PlayVoice(VoiceType.GameOver);
         }
 
         // ノックバック処理
@@ -158,6 +184,9 @@ namespace UnityChan
             _animation.SetBool("Damage", false);
 
             isMove = true;
+
+            // ダメージボイス再生
+            PlayVoice(VoiceType.Damage);
         }
 
         // ------------------------------------------------------------------------ UnityMessage
@@ -186,6 +215,10 @@ namespace UnityChan
             orgVectColCenter = col.center;
             // ParticleSystemコンポーネント取得
             _invincibleEffect = GetComponentInChildren<ParticleSystem>();
+            // AudioSourceコンポーネント取得
+            _voiceAudioSource = GetComponent<AudioSource>();
+            // スタート時ボイス
+            PlayVoice(VoiceType.Start);
         }
 
         // 以下、メイン処理.リジッドボディと絡めるので、FixedUpdate内で処理を行う.
@@ -318,6 +351,34 @@ namespace UnityChan
             // コンポーネントのHeight、Centerの初期値を戻す
             col.height = orgColHight;
             col.center = orgVectColCenter;
+        }
+
+
+        // AudioClipをもとにボイスを再生
+        private void PlayVoice(AudioClip audioClip)
+        {
+            _voiceAudioSource.clip = audioClip;
+            _voiceAudioSource.Play();
+        }
+
+        // VoiceTypeをもとにボイスを再生
+        private void PlayVoice(VoiceType voiceType)
+        {
+            switch (voiceType)
+            {
+                case VoiceType.Start:
+                    PlayVoice(_startVoice);
+                    break;
+                case VoiceType.Damage:
+                    PlayVoice(_damageVoice);
+                    break;
+                case VoiceType.GameClear:
+                    PlayVoice(_gameClearVoice);
+                    break;
+                case VoiceType.GameOver:
+                    PlayVoice(_gameOverVoice);
+                    break;
+            }
         }
     }
 }
