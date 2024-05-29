@@ -29,7 +29,7 @@ public class SpeedChanger : MonoBehaviour
     [SerializeField]
     private float _changeSpeed;
     // 効果時間 「触れている間のみ」にしたい場合でも設定してね。
-    [SerializeField] 
+    [SerializeField]
     private float _LimitTime = 0.1f;
 
     private void Start()
@@ -37,7 +37,7 @@ public class SpeedChanger : MonoBehaviour
         _capsuleCollider = GetComponent<CapsuleCollider>();
         // アタッチされていない時に検索と格納
         if (_player == null)
-        _player = GameObject.Find("unitychan").GetComponent<PlayerController>();
+            _player = GameObject.Find("unitychan").GetComponent<PlayerController>();
         // バフorデバフ判定
         if (_changeSpeed >= 1)
         {
@@ -67,14 +67,14 @@ public class SpeedChanger : MonoBehaviour
         switch (type)
         {
             case ObjectType.Item:
-                _player.itemSpeed = _changeSpeed;
+                _player.ItemSpeed = _changeSpeed;
                 Gotton();
                 break;
             case ObjectType.Object:
-                if(_isBuff)
-                    _player.objectSpd = _changeSpeed;
-                else if(!_isBuff && !_player.invincible)
-                    _player.objectSpd = _changeSpeed;
+                if (_isBuff)
+                    _player.ObjectSpd = _changeSpeed;
+                else if (!_isBuff && !_player.invincible)
+                    _player.ObjectSpd = _changeSpeed;
                 break;
             default:
                 break;
@@ -87,10 +87,10 @@ public class SpeedChanger : MonoBehaviour
         switch (type)
         {
             case ObjectType.Item:
-                _player.itemSpeed = 1;
+                _player.ItemSpeed = 1;
                 break;
             case ObjectType.Object:
-                _player.objectSpd = 1;
+                _player.ObjectSpd = 1;
                 break;
             default:
                 break;
