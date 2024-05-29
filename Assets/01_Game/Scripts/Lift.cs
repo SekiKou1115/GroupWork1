@@ -34,7 +34,7 @@ public class Lift : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            collision.transform.SetParent(gameObject.transform);
+            collision.transform.SetParent(transform.GetChild(0));
         }
     }
 
