@@ -10,6 +10,7 @@ public class Lift : MonoBehaviour
 {
     [SerializeField] float _startWaitTime;
 
+    [SerializeField] GameObject _baseObject;
     [SerializeField] GameObject[] _pos;
     [SerializeField] float _duration;
     [SerializeField] Ease _ease;
@@ -34,7 +35,7 @@ public class Lift : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            collision.transform.SetParent(transform.GetChild(0));
+            collision.transform.SetParent(_baseObject.transform.GetChild(0));
         }
     }
 
