@@ -279,9 +279,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _startWaitTime: 1
+  _baseObject: {fileID: 2480399822898998866}
   _pos:
   - {fileID: 1662341678353970436}
   - {fileID: 3293220693308386082}
+  - {fileID: 4100685579581122122}
   _duration: 4
   _ease: 1
   _stayTime: 1
