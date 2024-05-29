@@ -38,10 +38,10 @@ public class Item_Addinvincible : MonoBehaviour
     // –³“GƒIƒ“I
     private void AddInvincible()
     {
-        if (_player.itemSpeed < 1)
-            _player.itemSpeed = 1;
-        if(_player.objectSpd < 1)
-            _player.objectSpd = 1;
+        if (_player.ItemSpeed < 1)
+            _player.ItemSpeed = 1;
+        if(_player.ObjectSpd < 1)
+            _player.ObjectSpd = 1;
         _player.invincible = true;
         _player._invincibleEffect.Play();
         Gotton();

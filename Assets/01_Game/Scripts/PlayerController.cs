@@ -29,6 +29,17 @@ namespace UnityChan
         private bool isMove = true;
         private Vector3 knockbackVelocity = Vector3.zero;
 
+        // ボイス用のAudioSource
+        [SerializeField]private AudioSource _voiceAudioSource;
+
+        private enum VoiceType
+        {
+            Start,
+            Damage,
+            GameClear,
+            GameOver
+        }
+
         // 以下キャラクターコントローラ用パラメタ
         [Header("パラメータ")]
         [SerializeField, Tooltip("移動速度")] private float _speed = 3;
@@ -36,16 +47,21 @@ namespace UnityChan
         [SerializeField, Tooltip("ジャンプ力")] private float _jumpPower = 3.0f;
         [SerializeField, Tooltip("ノックバック力")] private float _knockbackPower = 1f;
 
+        [SerializeField, Tooltip("StartVoice")] private AudioClip _startVoice;
+        [SerializeField, Tooltip("DamageVoice")] private AudioClip _damageVoice;
+        [SerializeField, Tooltip("GameClearVoice")] private AudioClip _gameClearVoice;
+        [SerializeField, Tooltip("GameOverVoice")] private AudioClip _gameOverVoice;
+
         // アイテムによるスピードへの効果格納用 1f=等倍
         private float _itemSpeed = 1f;
-        public float itemSpeed
+        public float ItemSpeed
         {
             get { return _itemSpeed; }
             set { _itemSpeed = value; }
         }
         // オブジェクトによるスピードへの効果格納用 1f=等倍
         private float _objectSpd = 1f;
-        public float objectSpd
+        public float ObjectSpd
         {
             get { return _objectSpd; }
             set { _objectSpd = value; }
@@ -124,10 +140,19 @@ namespace UnityChan
                 }
             }
         }
+        // ゲームクリア処理
+        public void GameClear()
+        {
+            // クリアボイス再生
+            PlayVoice(VoiceType.GameClear);
+        }
 
         // ゲームオーバー処理
         public void GameOver()
         {
+            // ダメージボイス再生
+            PlayVoice(VoiceType.GameOver);
+
             _animation.SetBool("Reflesh", true);
             _isGameOver = true;
             _gameOverMenu.SetActive(true);
@@ -143,6 +168,9 @@ namespace UnityChan
                 return;
             }
 
+            // ダメージボイス再生
+            PlayVoice(VoiceType.Damage);
+            Debug.Log("aaaaaa");
             isMove = false;
 
             //ダメージアニメーションを再生
@@ -186,6 +214,10 @@ namespace UnityChan
             orgVectColCenter = col.center;
             // ParticleSystemコンポーネント取得
             _invincibleEffect = GetComponentInChildren<ParticleSystem>();
+            // AudioSourceコンポーネント取得
+            _voiceAudioSource = GetComponent<AudioSource>();
+            // スタート時ボイス
+            PlayVoice(VoiceType.Start);
         }
 
         // 以下、メイン処理.リジッドボディと絡めるので、FixedUpdate内で処理を行う.
@@ -204,7 +236,7 @@ namespace UnityChan
             // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
             if (isMove && !_isGameOver)
             {
-                rb.velocity = moveForward * (_speed * itemSpeed * _objectSpd) + new Vector3(0, rb.velocity.y, 0);
+                rb.velocity = moveForward * (_speed * _itemSpeed * _objectSpd) + new Vector3(0, rb.velocity.y, 0);
             }
 
             // キャラクターの向きを進行方向に
@@ -215,7 +247,6 @@ namespace UnityChan
             }
 
             _isGround = CheckGrounded();
-            Debug.Log(_isGround);
 
             _animation.SetFloat("Speed", rb.velocity.magnitude);
 
@@ -318,6 +349,33 @@ namespace UnityChan
             // コンポーネントのHeight、Centerの初期値を戻す
             col.height = orgColHight;
             col.center = orgVectColCenter;
+        }
+
+        // AudioClipをもとにボイスを再生
+        private void PlayVoice(AudioClip audioClip)
+        {
+            _voiceAudioSource.clip = audioClip;
+            _voiceAudioSource.Play();
+        }
+
+        // VoiceTypeをもとにボイスを再生
+        private void PlayVoice(VoiceType voiceType)
+        {
+            switch (voiceType)
+            {
+                case VoiceType.Start:
+                    PlayVoice(_startVoice);
+                    break;
+                case VoiceType.Damage:
+                    PlayVoice(_damageVoice);
+                    break;
+                case VoiceType.GameClear:
+                    PlayVoice(_gameClearVoice);
+                    break;
+                case VoiceType.GameOver:
+                    PlayVoice(_gameOverVoice);
+                    break;
+            }
         }
     }
 }
