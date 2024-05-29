@@ -49,7 +49,7 @@ namespace UnityChan
         }
 
         // プレイヤーのムテキ状態格納
-        [Header("無敵"),SerializeField]
+        [Header("無敵"), SerializeField]
         private bool _invincible = false;
         public bool invincible
         {
@@ -160,7 +160,7 @@ namespace UnityChan
             // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
             if (isMove)
             {
-                rb.velocity = moveForward * _speed + new Vector3(0, rb.velocity.y, 0);
+                rb.velocity = moveForward * (_speed * itemSpd * _objectSpd) + new Vector3(0, rb.velocity.y, 0);
             }
 
             // キャラクターの向きを進行方向に
@@ -191,7 +191,7 @@ namespace UnityChan
             else if (currentBaseState.nameHash == jumpState)
             {
                 /*cameraObject.SendMessage("setCameraPositionJumpView");  */// ジャンプ中のカメラに変更
-                                                                        // ステートがトランジション中でない場合
+                                                                            // ステートがトランジション中でない場合
                 if (!anim.IsInTransition(0))
                 {
 
