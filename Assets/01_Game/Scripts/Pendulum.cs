@@ -11,7 +11,7 @@ public class Pendulum : MonoBehaviour
 
     void Update()
     {
-        _fulcrum.transform.Rotate(0, 0, _speed);
+        _fulcrum.transform.Rotate(0, 0, _speed * Time.deltaTime);
     }
 
     private void OnTriggerEnter(Collider other)
