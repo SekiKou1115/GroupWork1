@@ -396,7 +396,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _fulcrum: {fileID: 6447805121290025561}
-  _speed: 3
+  _speed: 300
 --- !u!1 &7335691041276937997
 GameObject:
   m_ObjectHideFlags: 0
